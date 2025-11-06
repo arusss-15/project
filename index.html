@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Info</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+
+        @font-face {
+            font-family: "titan";
+            src: url('TitanOne-Regular.woff2') format('woff2');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        body {
+            background: linear-gradient(180deg, #5255EA, rgb(217, 217, 217))
+        }
+
+        #search_box {
+            margin-right: auto;
+            margin-left: auto;
+        }
+
+        .topbar {
+            display: flex;
+            height: 70px;
+            padding-top: 10px;
+            align-items: center;
+            justify-content: space-around;
+            width: 100%;
+            background-color: #313137;
+            transition: 0.3s;
+        }
+
+        .topbar>.search_area {
+            position: relative;
+            display: inline-block;
+            width: 25%;
+            align-items: center;
+        }
+
+        .topbar>.search_area>input:focus {
+            outline: 4px solid rgb(0, 0, 0);
+        }
+
+        .search_area>input {
+            height: 35px;
+            width: 320px;
+            outline: none;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.888);
+            box-shadow: -1px 3px 12px rgba(0, 0, 0, 0.767);
+            backdrop-filter: blur(5px);
+            border-radius: 4px;
+            padding-left: 4px;
+        }
+
+        .search_area>button {
+            position: absolute;
+            height: 35px;
+            width: 60px;
+            background-color: #5865F2;
+            font-weight: bold;
+            transform: translateX(10%);
+            border-radius: 4px;
+            border: none;
+        }
+
+        .search_area>button:hover {
+            background-color: #7e88f9;
+        }
+
+        .page {
+            align-items: center;
+            height: 700px;
+            padding: 40px 40px 40px 40px;
+            width: 100%;
+        }
+
+        #main {
+            width: 99%;
+            height: 90%;
+            display: flex;
+            position: relative;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(51, 51, 51, 0.874);
+            border-radius: 5px;
+            align-items: center;
+            background-color: rgba(202, 202, 202, 0.400);
+            transition: 0.9s;
+        }
+
+        #cityname {
+            font-weight: bold;
+        }
+
+        #main>.w_image {
+            height: 230px;
+            width: 280px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #main>.w_image>img {
+            height: 100%;
+        }
+
+        #temp {
+            font-size: 80px;
+            font-weight: bolder;
+            color: #4D69F1;
+            text-shadow: 2px 2px 6px rgb(75, 74, 74);
+            font-family: 'titan';
+        }
+
+        #info {
+            font-size: 32px;
+            font-weight: bolder;
+            color: #4D69F1;
+            font-family: 'titan';
+            font-weight: bold;
+        }
+
+        #w_feels {
+            font-family: 'titan';
+        }
+
+        #desc {
+            font-family: 'titan';
+        }
+
+        .max_min {
+            position: absolute;
+            display: none;
+            height: 150px;
+            width: 200px;
+            border-radius: 8px;
+            left: 50px;
+            top: 200px;
+            background-color: rgba(240, 248, 255, 0.529);
+            box-shadow: 2px 2px 6px rgb(142, 142, 142);
+            backdrop-filter: blur(10px);
+            padding-top: 36px;
+            padding-left: 10px;
+        }
+
+        .max_min>p {
+            font-family: 'titan';
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <p class="search_area">
+            <input type="text" id="search_box" placeholder="City Name">
+            <button onclick="weather()"><i class="fa-solid fa-magnifying-glass"
+                    style="color: #000000;"></i></button><br> <br>
+        </p>
+    </div>
+
+    <div class="page">
+        <div id="main">
+            <p id="cityname"></p><br>
+            <div class="w_image"></div>
+            <span id="temp"></span>
+            <span id="info"></span><br>
+            <p id="w_feels"></p>
+            <span id="desc"></span>
+            <div class="max_min">
+                <p class="max"></p><br><br>
+                <p class="min"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let city = document.getElementById('search_box')
+        let w_info = document.getElementById('temp')
+        let info = document.getElementById('info')
+        let desc = document.getElementById('desc')
+        let cityname = document.getElementById('cityname')
+        let main = document.getElementById('main')
+        let image = document.getElementsByClassName('w_image')[0]
+        let max_min = document.getElementsByClassName('max_min')[0]
+        let max = document.getElementsByClassName('max')[0]
+        let min = document.getElementsByClassName('min')[0]
+        let w_feels = document.getElementById('w_feels')
+        let search = document.getElementsByTagName('button')[0]
+
+        // fetch('http://api.openweathermap.org/data/2.5/forecast?id=524901&appid=a31c9f78f3f9d4d37a13f96ce482e207')
+        //     .then((res) => {
+        //         return res.json()
+        //     })
+        //     .then((data) => {
+        //         console.log(data)
+        //     })
+
+        function weather() {
+            let city2 = city.value.trim();
+            if (city2 === "") {
+                image.innerHTML = ``;
+                cityname.innerHTML = "No Location";
+                w_info.innerHTML = "";
+                info.innerHTML = "";
+                desc.innerHTML = "";
+                w_feels.innerHTML = "";
+                max_min.style.display = 'none';
+                main.style.backgroundColor = "rgba(202, 202, 202, 0.400)";
+                return;
+            }
+
+            fetch('http://api.openweathermap.org/data/2.5/forecast?q=' + city.value + '&appid=a31c9f78f3f9d4d37a13f96ce482e207')
+                .then((res) => {
+                    return res.json()
+                })
+                .then((data) => {
+                    console.log(data)
+                    if (data.cod === "404") {
+                        cityname.innerHTML = "City Not Found";
+                        image.innerHTML = "";
+                        w_info.innerHTML = "";
+                        info.innerHTML = "";
+                        desc.innerHTML = "";
+                        w_feels.innerHTML = "";
+                        max_min.style.display = 'none';
+                        main.style.backgroundColor = "rgba(202, 202, 202, 0.400)";
+                        return;
+                    }
+
+                    if (data) {
+                        cityname.innerHTML = '<i class="fa-solid fa-location-dot" style="color: #000000;"></i>' + city.value
+
+                        max_min.style.display = 'block'
+
+                        let tempK = data.list[0].main.temp
+                        let tempC = Math.round(tempK - 273.15)
+                        w_info.innerHTML = tempC + '° C'
+
+                        let w_feelK = data.list[0].main.feels_like
+                        let w_feelC = Math.round(w_feelK - 273.15)
+                        w_feels.innerHTML = 'Feels Like: ' + w_feelC + '° C'
+
+                        let w_maxK = data.list[0].main.temp_max
+                        let w_maxC = Math.round(w_maxK - 273.15)
+                        max.innerHTML = 'Max. Temp: ' + w_maxC + '° C'
+
+                        let w_minK = data.list[0].main.temp_min
+                        let w_minC = Math.round(w_minK - 273.15)
+                        min.innerHTML = 'Min. Temp: ' + w_minC + '° C'
+
+                        let weatherinfo = data.list[0].weather[0].main
+                        info.innerHTML = weatherinfo
+
+                        desc.innerHTML = 'Description: ' + data.list[0].weather[0].description
+
+                        if (weatherinfo == 'Clouds') {
+                            image.innerHTML = `<img src="clouds.png">`
+                            main.style.backgroundColor = "rgba(123, 142, 176, 0.437)";
+                        }
+
+                        else if (weatherinfo == 'Clear') {
+                            image.innerHTML = `<img src="sun.png">`
+                            main.style.backgroundColor = "rgba(246, 255, 128, 0.437)";
+                        }
+
+                        else if (weatherinfo == 'Rain') {
+                            image.innerHTML = `<img src="rain.png">`
+                            main.style.backgroundColor = "rgba(112, 203, 250, 0.437)";
+                        }
+
+                        else if (weatherinfo == 'Thunderstorm') {
+                            image.innerHTML = `<img src="thunderstorm.png">`
+                            main.style.backgroundColor = "rgba(69, 69, 69, 0.437)";
+                        }
+
+                        else if (weatherinfo == 'Snow') {
+                            image.innerHTML = `<img src="snow.png">`
+                            main.style.backgroundColor = "rgba(204, 204, 204, 0.537)";
+                        }
+
+                        else if (weatherinfo == 'Squall') {
+                            image.innerHTML = `<img src="squall.png">`
+                            main.style.backgroundColor = "rgba(222, 243, 250, 0.537)";
+                        }
+
+                        else if (weatherinfo == 'Smoke') {
+                            image.innerHTML = `<img src="smoke.png">`
+                            main.style.backgroundColor = "rgba(242, 188, 124, 0.437)";
+                        }
+
+                        else if (weatherinfo == 'Tornado') {
+                            image.innerHTML = `<img src="tornado.png">`
+                            main.style.backgroundColor = "rgba(255, 179, 179, 0.437)";
+                        }
+
+                        else {
+                            image.innerHTML = 'not available'
+                        }
+                    }
+
+                })
+        }
+    </script>
+</body>
+
+</html>
